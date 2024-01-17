@@ -1,5 +1,22 @@
 import axiosClient from './axiosClient'
 
+// import: default import, name import
+// export: default import, name import
+// default: can use your name --> have one default export ONLY
+// named export: use exactly name --> have multiple exports
+
+// name import
+// export function getAll(params) {
+//   const url = '/posts'
+//   return axiosClient.get(url, { params })
+// }
+
+// export function getById(id) {
+//   const url = `/posts/${id}`
+//   return axiosClient.get(url)
+// }
+
+// Default import
 const postApi = {
   getAll(params) {
     const url = '/posts'
