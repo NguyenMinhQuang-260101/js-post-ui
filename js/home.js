@@ -64,6 +64,27 @@ function renderPostList(postList) {
   })
 }
 
+function renderPagination(pagination) {
+  const ulPagination = document.getElementById('pagination')
+  if (!pagination || !ulPagination) return
+
+  // calc totalPages
+  const { _page, _limit, _totalRows } = pagination
+  console.log(_page)
+  const totalPages = Math.ceil(_totalRows / _limit)
+
+  // save page and totalPages to ulPagination
+  ulPagination.dataset.page = _page
+  ulPagination.dataset.totalPages = totalPages
+
+  // check if enable/ disable prev/next licks
+  if (_page <= 1) ulPagination.firstElementChild?.classList.add('disabled')
+  else ulPagination.firstElementChild?.classList.remove('disabled')
+
+  if (_page >= totalPages) ulPagination.lastElementChild?.classList.add('disabled')
+  else ulPagination.lastElementChild?.classList.remove('disabled')
+}
+
 function handleFilterChange(filterName, filterValue) {
   // update query params
   const url = new URL(window.location)
@@ -122,6 +143,7 @@ function initURL() {
     const { data, pagination } = await postApi.getAll(queryParams)
 
     renderPostList(data)
+    renderPagination(pagination)
   } catch (error) {
     console.log('get all failed', error)
   }
