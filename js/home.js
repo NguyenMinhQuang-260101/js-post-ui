@@ -88,16 +88,20 @@ function renderPagination(pagination) {
 }
 
 async function handleFilterChange(filterName, filterValue) {
-  // update query params
-  const url = new URL(window.location)
-  url.searchParams.set(filterName, filterValue)
-  history.pushState({}, '', url)
+  try {
+    // update query params
+    const url = new URL(window.location)
+    url.searchParams.set(filterName, filterValue)
+    history.pushState({}, '', url)
 
-  // fetch API
-  // re-render post list
-  const { data, pagination } = await postApi.getAll(url.searchParams)
-  renderPostList(data)
-  renderPagination(pagination)
+    // fetch API
+    // re-render post list
+    const { data, pagination } = await postApi.getAll(url.searchParams)
+    renderPostList(data)
+    renderPagination(pagination)
+  } catch (error) {
+    console.log('failed to fetch post list', error)
+  }
 }
 
 function handlePrevClick(e) {
@@ -152,11 +156,29 @@ function initURL() {
   history.pushState({}, '', url)
 }
 
+function initSearch() {
+  const searchInput = document.getElementById('searchInput')
+  if (!searchInput) return
+
+  // set default values form query params
+  // title_like
+
+  searchInput.addEventListener('input', (event) => {
+    // trigger search
+    console.log(event.target.value)
+  })
+}
+
 ;(async () => {
   try {
+    // attach click event for links
     initPagination()
+    initSearch()
+
+    // set default pagination (_page, _list) on URL
     initURL()
 
+    // render post list based URL params
     const queryParams = new URLSearchParams(window.location.search)
     const { data, pagination } = await postApi.getAll(queryParams)
     renderPostList(data)
