@@ -50,8 +50,25 @@ export function createPostElement(post) {
   // go to post detail when click on div.post-item
   const divElement = liElement.firstElementChild
   if (divElement) {
-    divElement.addEventListener('click', () => {
+    divElement.addEventListener('click', (event) => {
+      // S2: if event is triggered form menu --> ignore
+      const menu = liElement.querySelector('[data-id="menu"]')
+      if (menu && menu.contains(event.target)) return
+
+      // console.log('parent click')
       window.location.assign(`/post-detail.html?id=${post.id}`)
+    })
+  }
+
+  // add click for event button
+  const editButton = liElement.querySelector('[data-id="edit"]')
+  if (editButton) {
+    editButton.addEventListener('click', (event) => {
+      // console.log('edit click')
+      // prevent event bubbling to parent
+      // S1: If not use tracking click
+      // event.stopPropagation()
+      window.location.assign(`/add-edit-post.html?id=${post.id}`)
     })
   }
 
