@@ -1,4 +1,5 @@
 import { setBackgroundImage, setFieldValues, setTextContent } from './common'
+import * as yup from 'yup'
 
 function setFormValues(form, formValues) {
   setFieldValues(form, '[name="title"]', formValues?.title)
@@ -27,41 +28,58 @@ function getFormValues(form) {
   return formValues
 }
 
-function getTitleError(form) {
-  const titleElement = form.querySelector('[name="title"]')
-  if (!titleElement) return
-
-  // required
-  if (titleElement.validity.valueMissing) return 'Please enter title.'
-
-  // at least two words
-  if (titleElement.value.split(' ').filter((x) => !!x && x.length >= 3).length < 2) {
-    return 'please enter at least two words of 3 characters'
-  }
-  return ''
+function getPostSchema() {
+  return yup.object().shape({
+    title: yup.string().required('Please enter title'),
+    author: yup
+      .string()
+      .required('Please enter author')
+      .test(
+        'at-least-two-words',
+        'Please enter at least two words',
+        (value) => value.split(' ').filter((x) => !!x && x.length >= 3).length >= 2
+      ),
+    description: yup.string(),
+  })
 }
 
-function validationPostForm(form, formValues) {
-  // get errors
-  const errors = {
-    title: getTitleError(form),
-    // author: getAuthorError(form)
-    // ...
+function setFiledError(form, name, error) {
+  const element = form.querySelector(`[name="${name}"]`)
+  if (element) {
+    element.setCustomValidity(error)
+    setTextContent(element.parentElement, '.invalid-feedback', error)
   }
+}
 
-  // set errors
-  for (const key in errors) {
-    const element = form.querySelector(`[name="${key}"]`)
-    if (element) {
-      element.setCustomValidity(errors[key])
-      setTextContent(element.parentElement, '.invalid-feedback', errors[key])
+async function validationPostForm(form, formValues) {
+  try {
+    // reset previous errors
+    ;['title', 'author'].forEach((name) => setFiledError(form, name, ''))
+
+    // start validating
+    const schema = getPostSchema()
+    await schema.validate(formValues, { abortEarly: false })
+  } catch (error) {
+    const errorLog = {}
+
+    if (error.name === 'ValidationError' && Array.isArray(error.inner)) {
+      for (const validationError of error.inner) {
+        const name = validationError.path
+
+        // ignore if the field is already logged
+        if (errorLog[name]) continue
+
+        // set field error and mark as logged
+        setFiledError(form, name, validationError.message)
+        errorLog[name] = true
+      }
     }
   }
 
   // add was-validated class to form element
   const isValid = form.checkValidity()
   if (!isValid) form.classList.add('was-validated')
-  return false
+  return isValid
 }
 
 export function initPostForm({ formId, defaultValues, onSubmit }) {
