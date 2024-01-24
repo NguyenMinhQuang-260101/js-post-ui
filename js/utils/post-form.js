@@ -1,4 +1,4 @@
-import { setBackgroundImage, setFieldValues } from './common'
+import { setBackgroundImage, setFieldValues, setTextContent } from './common'
 
 function setFormValues(form, formValues) {
   setFieldValues(form, '[name="title"]', formValues?.title)
@@ -27,6 +27,43 @@ function getFormValues(form) {
   return formValues
 }
 
+function getTitleError(form) {
+  const titleElement = form.querySelector('[name="title"]')
+  if (!titleElement) return
+
+  // required
+  if (titleElement.validity.valueMissing) return 'Please enter title.'
+
+  // at least two words
+  if (titleElement.value.split(' ').filter((x) => !!x && x.length >= 3).length < 2) {
+    return 'please enter at least two words of 3 characters'
+  }
+  return ''
+}
+
+function validationPostForm(form, formValues) {
+  // get errors
+  const errors = {
+    title: getTitleError(form),
+    // author: getAuthorError(form)
+    // ...
+  }
+
+  // set errors
+  for (const key in errors) {
+    const element = form.querySelector(`[name="${key}"]`)
+    if (element) {
+      element.setCustomValidity(errors[key])
+      setTextContent(element.parentElement, '.invalid-feedback', errors[key])
+    }
+  }
+
+  // add was-validated class to form element
+  const isValid = form.checkValidity()
+  if (!isValid) form.classList.add('was-validated')
+  return false
+}
+
 export function initPostForm({ formId, defaultValues, onSubmit }) {
   const form = document.getElementById(formId)
   if (!form) return
@@ -43,5 +80,7 @@ export function initPostForm({ formId, defaultValues, onSubmit }) {
     // validation
     // if valid trigger submit callback
     // otherwise, show validation errors
+
+    if (!validationPostForm(form, formValues)) return
   })
 }
