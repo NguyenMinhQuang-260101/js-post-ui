@@ -18,7 +18,6 @@ async function handlePostFormSubmit(formValues) {
     setTimeout(() => {
       window.location.assign(`/post-detail.html?id=${savePost.id}`)
     }, 2000)
-    // console.log('redirect to', savePost.id)
   } catch (error) {
     console.log('failed to save post', error)
     toast.error(`Error: ${error.message}`)
