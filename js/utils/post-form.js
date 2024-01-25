@@ -1,4 +1,4 @@
-import { setBackgroundImage, setFieldValues, setTextContent } from './common'
+import { randomNumber, setBackgroundImage, setFieldValues, setTextContent } from './common'
 import * as yup from 'yup'
 
 function setFormValues(form, formValues) {
@@ -40,6 +40,10 @@ function getPostSchema() {
         (value) => value.split(' ').filter((x) => !!x && x.length >= 3).length >= 2
       ),
     description: yup.string(),
+    imageUrl: yup
+      .string()
+      .required('Please random a background image')
+      .url('Please enter valid URL'),
   })
 }
 
@@ -54,7 +58,7 @@ function setFiledError(form, name, error) {
 async function validationPostForm(form, formValues) {
   try {
     // reset previous errors
-    ;['title', 'author'].forEach((name) => setFiledError(form, name, ''))
+    ;['title', 'author', 'imageUrl'].forEach((name) => setFiledError(form, name, ''))
 
     // start validating
     const schema = getPostSchema()
@@ -98,6 +102,18 @@ function hideLoading(form) {
   }
 }
 
+function initRandomImage(form) {
+  const randomButton = document.getElementById('postChangeImage')
+  if (!randomButton) return
+
+  randomButton.addEventListener('click', () => {
+    const imageUrl = `https://picsum.photos/id/${randomNumber(1000)}/1368/400`
+
+    setFieldValues(form, '[name="imageUrl"]', imageUrl) // hidden field
+    setBackgroundImage(document, '#postHeroImage', imageUrl)
+  })
+}
+
 export function initPostForm({ formId, defaultValues, onSubmit }) {
   const form = document.getElementById(formId)
   if (!form) return
@@ -105,6 +121,9 @@ export function initPostForm({ formId, defaultValues, onSubmit }) {
   let submitting = false
 
   setFormValues(form, defaultValues)
+
+  // init events
+  initRandomImage(form)
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault()
@@ -124,10 +143,9 @@ export function initPostForm({ formId, defaultValues, onSubmit }) {
     // otherwise, show validation errors
 
     const isValid = await validationPostForm(form, formValues)
-    if (!isValid) return
+    if (isValid) await onSubmit?.(formValues)
 
-    await onSubmit?.(formValues)
-
+    // alway hide loading no matter form is valid or not
     hideLoading(form)
     submitting = false
   })
