@@ -88,17 +88,20 @@ export function initPostForm({ formId, defaultValues, onSubmit }) {
 
   setFormValues(form, defaultValues)
 
-  form.addEventListener('submit', (event) => {
+  form.addEventListener('submit', async (event) => {
     event.preventDefault()
 
     // get form values
     const formValues = getFormValues(form)
-    console.log(formValues)
+    formValues.id = defaultValues.id
 
     // validation
     // if valid trigger submit callback
     // otherwise, show validation errors
 
-    if (!validationPostForm(form, formValues)) return
+    const isValid = await validationPostForm(form, formValues)
+    if (!isValid) return
+
+    onSubmit?.(formValues)
   })
 }
